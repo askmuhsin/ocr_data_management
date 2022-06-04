@@ -50,3 +50,8 @@ def ocr_infer_paddle(
         'text': ocr_model.processed_output['stitched_text']
     }
 
+## DONE: image url to text DON
+## TODO: image inference on s3
+## TODO: image to text
+## TODO: image to result (obj)
+## TODO: image to store inspect element
