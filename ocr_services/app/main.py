@@ -49,3 +49,4 @@ def ocr_infer_paddle(
     return {
         'text': ocr_model.processed_output['stitched_text']
     }
+
