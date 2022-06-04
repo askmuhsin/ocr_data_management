@@ -24,9 +24,11 @@ def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return credentials.username
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 @app.get("/items/{item_id}")
 def read_item(
@@ -40,6 +42,7 @@ def read_item(
         "username": username, 
     }
 
+
 @app.get("/infer/paddleOCR/")
 def ocr_infer_paddle(
     image_links
@@ -49,6 +52,7 @@ def ocr_infer_paddle(
     return {
         'text': ocr_model.processed_output['stitched_text']
     }
+
 
 ## DONE: image url to text DON
 ## TODO: image inference on s3
