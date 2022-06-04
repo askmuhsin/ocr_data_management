@@ -4,8 +4,14 @@ from typing import Union
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
+from .models.paddle_ocr import PaddleOCRModel
+from .utils import get_image_from_url
+
 app = FastAPI()
 security = HTTPBasic()
+
+ocr_model = PaddleOCRModel()
+ocr_model.inspect_output = False
 
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, "ocr_admin")
@@ -22,7 +28,6 @@ def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
 def read_root():
     return {"Hello": "World"}
 
-
 @app.get("/items/{item_id}")
 def read_item(
     item_id: int, 
@@ -33,4 +38,12 @@ def read_item(
         "item_id": item_id, 
         "q": q,
         "username": username, 
+    }
+
+@app.get("/infer/paddleOCR/")
+def ocr_infer_paddle(image_link):
+    image = get_image_from_url(image_link)
+    ocr_model.predict(image)
+    return {
+        'text': ocr_model.processed_output['stitched_text']
     }
