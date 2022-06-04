@@ -41,7 +41,9 @@ def read_item(
     }
 
 @app.get("/infer/paddleOCR/")
-def ocr_infer_paddle(image_link):
+def ocr_infer_paddle(
+    image_links
+):
     image = get_image_from_url(image_link)
     ocr_model.predict(image)
     return {
