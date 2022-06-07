@@ -1,4 +1,3 @@
-import imp
 from paddleocr import PaddleOCR, draw_ocr
 import matplotlib.pyplot as plt
 from PIL import Image, ImageFont

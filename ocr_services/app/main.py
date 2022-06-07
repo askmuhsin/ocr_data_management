@@ -1,4 +1,5 @@
 import secrets
+import numpy as np
 from typing import Union
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -62,8 +63,14 @@ def ocr_service_run(s3_object_key, s3_bucket='ocr-requested-images'):
     print('[INFO] Read Image from S3 ... ')
     img = get_image_from_s3(s3_object_key, s3_bucket)
 
+    if isinstance(img, np.ndarray):
+        print(f'[INFO] retrivied image of type {type(img)} and shape {img.shape}')
+    else:
+        print(f'[ERROR] invalid image type -- {type(img)}')
+
     print('[INFO] Run Inference ... ')
     ocr_model.predict(img)
+    print(f"[INFO] Inferred text -- ocr_model.processed_output['stitched_text']")
 
     print('[INFO] write inspect image to S3 ... ')
     write_annotated_file_to_s3(ocr_model.pred_annotated_img, s3_object_key)
