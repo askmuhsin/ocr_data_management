@@ -14,7 +14,8 @@ app = FastAPI()
 security = HTTPBasic()
 
 ocr_model = PaddleOCRModel()
-ocr_model.inspect_output = False
+ocr_model.inspect_output = True
+ocr_model.debug = False
 
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, "ocr_admin")
@@ -30,7 +31,7 @@ def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"name": "ocr_service"}
 
 
 @app.get("/items/{item_id}")
@@ -56,10 +57,15 @@ def ocr_infer_url(
         'text': ocr_model.processed_output['stitched_text']
     }
 
-@app.get("/v1/ocr_service_run/")
+@app.put("/v1/ocr_service_run/")
 def ocr_service_run(s3_object_key, s3_bucket='ocr-requested-images'):
+    print('[INFO] Read Image from S3 ... ')
     img = get_image_from_s3(s3_object_key, s3_bucket)
-    ocr_model.predict(image)
+
+    print('[INFO] Run Inference ... ')
+    ocr_model.predict(img)
+
+    print('[INFO] write inspect image to S3 ... ')
     write_annotated_file_to_s3(ocr_model.pred_annotated_img, s3_object_key)
 
     ## TODO: write to stiched text to sqs
