@@ -1,6 +1,10 @@
-import cv2
-import numpy as np
 from urllib.request import urlopen, Request
+import numpy as np
+import shutil
+import boto3
+import cv2
+import io
+import os
 
 header = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -21,3 +25,56 @@ def get_image_from_url(url):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     return img
+
+
+def get_image_from_s3(s3_object_key, s3_bucket, region_name='us-east-1'):
+    img = None
+    try:
+        s3 = boto3.resource(
+            's3',
+            region_name=region_name,
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+        )
+        ocr_request_bucket = s3.Bucket(s3_bucket)
+        img_obj = ocr_request_bucket.Object(s3_object_key)
+
+        local_file_path = os.path.join('/tmp', s3_object_key)
+        dir_path = os.path.dirname(local_file_path)
+
+        os.makedirs(dir_path,exist_ok=True)
+        img_obj.download_file(local_file_path)
+
+        img = cv2.imread(local_file_path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    except Exception as e:
+        print(s3_object_key, s3_bucket, e)
+    else:
+        shutil.rmtree(dir_path)
+    
+    return img
+
+
+def write_annotated_file_to_s3(
+    pred_annotated_img, s3_object_key, s3_bucket='ocr-output-images'
+):
+    try:
+        s3 = boto3.resource(
+            's3',
+            region_name=region_name,
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+        )
+        ocr_request_bucket = s3.Bucket(s3_bucket)
+
+        img = cv2.cvtColor(pred_annotated_img, cv2.COLOR_RGB2BGR)
+
+        local_file_path = os.path.join('/tmp', s3_object_key)
+        cv2.imwrite(local_file_path, img)
+
+        ocr_request_bucket.upload_file(local_file_path, s3_object_key)
+        
+    except Exception as e:
+        print(s3_object_key, e)
+    else:
+        shutil.rmtree(dir_path)
