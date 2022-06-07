@@ -27,7 +27,9 @@ def get_image_from_url(url):
     return img
 
 
-def get_image_from_s3(s3_object_key, s3_bucket, region_name='us-east-1'):
+def get_image_from_s3(
+    s3_object_key, s3_bucket, region_name='us-east-1',
+):
     img = None
     try:
         s3 = boto3.resource(
@@ -41,14 +43,15 @@ def get_image_from_s3(s3_object_key, s3_bucket, region_name='us-east-1'):
 
         local_file_path = os.path.join('/tmp', s3_object_key)
         dir_path = os.path.dirname(local_file_path)
-
         os.makedirs(dir_path,exist_ok=True)
+
         img_obj.download_file(local_file_path)
 
         img = cv2.imread(local_file_path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
     except Exception as e:
-        print(s3_object_key, s3_bucket, e)
+        print('[ERROR] get_image_from_s3 : ', s3_object_key, s3_bucket, e)
     else:
         shutil.rmtree(dir_path)
     
@@ -56,7 +59,8 @@ def get_image_from_s3(s3_object_key, s3_bucket, region_name='us-east-1'):
 
 
 def write_annotated_file_to_s3(
-    pred_annotated_img, s3_object_key, s3_bucket='ocr-output-images'
+    pred_annotated_img, s3_object_key, 
+    s3_bucket='ocr-output-images', region_name='us-east-1',
 ):
     try:
         s3 = boto3.resource(
@@ -65,16 +69,20 @@ def write_annotated_file_to_s3(
             aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
             aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
         )
-        ocr_request_bucket = s3.Bucket(s3_bucket)
+        ocr_output_bucket = s3.Bucket(s3_bucket)
+        # img_obj = ocr_output_bucket.Object(s3_object_key)
 
-        img = cv2.cvtColor(pred_annotated_img, cv2.COLOR_RGB2BGR)
+        pred_annotated_img = cv2.cvtColor(pred_annotated_img, cv2.COLOR_RGB2BGR)
 
-        local_file_path = os.path.join('/tmp', s3_object_key)
-        cv2.imwrite(local_file_path, img)
+        local_file_path = os.path.join('/tmp/output', s3_object_key)
+        dir_path = os.path.dirname(local_file_path)
+        os.makedirs(dir_path, exist_ok=True)
 
-        ocr_request_bucket.upload_file(local_file_path, s3_object_key)
+        cv2.imwrite(local_file_path, pred_annotated_img)
         
+        print(f'[INFO] writing {local_file_path} to {s3_object_key} in {s3_bucket}')
+        ocr_output_bucket.upload_file(local_file_path, s3_object_key)
     except Exception as e:
-        print(s3_object_key, e)
+        print('[ERROR] write_annotated_file_to_s3 : ', s3_object_key, e)
     else:
         shutil.rmtree(dir_path)
