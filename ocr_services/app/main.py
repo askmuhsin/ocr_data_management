@@ -70,7 +70,7 @@ def ocr_service_run(s3_object_key, s3_bucket='ocr-requested-images'):
 
     print('[INFO] Run Inference ... ')
     ocr_model.predict(img)
-    print(f"[INFO] Inferred text -- ocr_model.processed_output['stitched_text']")
+    print(f"[INFO] Inferred text -- {ocr_model.processed_output['stitched_text']}")
 
     print('[INFO] write inspect image to S3 ... ')
     write_annotated_file_to_s3(ocr_model.pred_annotated_img, s3_object_key)
