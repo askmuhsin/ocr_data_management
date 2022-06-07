@@ -14,6 +14,7 @@ class PaddleOCRModel:
         self.inspect_output = True
         
         self.debug = True
+        self.stich_text_sep = ' '
     
     def init_ocr_model(self):
         self.ocr = PaddleOCR(
@@ -37,7 +38,7 @@ class PaddleOCRModel:
     def _post_process(self):
         stitched_text = ""
         for bbox, (text, conf) in self.result:
-            stitched_text += (text + '\n')
+            stitched_text += (text + self.stich_text_sep)
         
         processed_output = {
             'stitched_text': stitched_text,
