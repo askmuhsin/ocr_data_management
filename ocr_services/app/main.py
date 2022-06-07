@@ -57,7 +57,7 @@ def ocr_infer_url(
         'text': ocr_model.processed_output['stitched_text']
     }
 
-@app.put("/v1/ocr_service_run/")
+@app.post("/v1/ocr_service_run/")
 def ocr_service_run(s3_object_key, s3_bucket='ocr-requested-images'):
     print('[INFO] Read Image from S3 ... ')
     img = get_image_from_s3(s3_object_key, s3_bucket)

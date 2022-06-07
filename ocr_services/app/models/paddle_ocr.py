@@ -17,8 +17,6 @@ class PaddleOCRModel:
         
         self.debug = True
         self.stich_text_sep = ' '
-
-        print(os.listdir())
     
     def init_ocr_model(self):
         self.ocr = PaddleOCR(
