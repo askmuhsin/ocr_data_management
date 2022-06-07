@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "docker build ... "
-# docker build -t ocr_service:latest . ;
+docker build -t ocr_service:latest . ;
 
 echo "docker run ...";
 docker run \
