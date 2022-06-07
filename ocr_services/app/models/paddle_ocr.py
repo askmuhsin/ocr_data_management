@@ -1,20 +1,24 @@
+import imp
 from paddleocr import PaddleOCR, draw_ocr
 import matplotlib.pyplot as plt
-from PIL import Image
+from PIL import Image, ImageFont
 import numpy as np
 import cv2
+import os
 
 class PaddleOCRModel:
     def __init__(self):
         self.lang = 'en'
         self.init_ocr_model()
-        self.font_path = './fonts/simfang.ttf'
+        self.font_path = './app/models/fonts/simfang.ttf'
         
         self.post_process = True
         self.inspect_output = True
         
         self.debug = True
         self.stich_text_sep = ' '
+
+        print(os.listdir())
     
     def init_ocr_model(self):
         self.ocr = PaddleOCR(
