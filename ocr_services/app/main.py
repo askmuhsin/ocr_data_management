@@ -5,7 +5,10 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from .models.paddle_ocr import PaddleOCRModel
-from .utils import get_image_from_url
+from .utils import (
+    get_image_from_url, get_image_from_s3, 
+    write_annotated_file_to_s3,
+)
 
 app = FastAPI()
 security = HTTPBasic()
@@ -44,7 +47,7 @@ def read_item(
 
 
 @app.get("/infer/paddleOCR/")
-def ocr_infer_paddle(
+def ocr_infer_url(
     image_link
 ):
     image = get_image_from_url(image_link)
@@ -52,6 +55,21 @@ def ocr_infer_paddle(
     return {
         'text': ocr_model.processed_output['stitched_text']
     }
+
+@app.get("/v1/ocr_service_run/")
+def ocr_service_run(s3_object_key, s3_bucket='ocr-requested-images'):
+    img = get_image_from_s3(s3_object_key, s3_bucket)
+    ocr_model.predict(image)
+    write_annotated_file_to_s3(ocr_model.pred_annotated_img, s3_object_key)
+
+    ## TODO: write to stiched text to sqs
+
+    return {
+        'text': ocr_model.processed_output['stitched_text'],
+        's3_object_key': s3_object_key,
+    }
+
+
 
 
 ## DONE: image url to text DON
