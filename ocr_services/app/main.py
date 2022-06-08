@@ -9,6 +9,7 @@ from .models.paddle_ocr import PaddleOCRModel
 from .utils import (
     get_image_from_url, get_image_from_s3, 
     write_annotated_file_to_s3,
+    write_to_sqs,
 )
 
 app = FastAPI()
@@ -75,18 +76,13 @@ def ocr_service_run(s3_object_key, s3_bucket='ocr-requested-images'):
     print('[INFO] write inspect image to S3 ... ')
     write_annotated_file_to_s3(ocr_model.pred_annotated_img, s3_object_key)
 
-    ## TODO: write to stiched text to sqs
+    print('[INFO] writing text to SQS for indexing ... ')
+    sqs_response = write_to_sqs(
+        ocr_model.processed_output['stitched_text'], s3_object_key
+    )
+    print(f'[INFO] sqs response -- {sqs_response}')
 
     return {
         'text': ocr_model.processed_output['stitched_text'],
         's3_object_key': s3_object_key,
     }
-
-
-
-
-## DONE: image url to text DON
-## TODO: image inference on s3
-## TODO: image to text
-## TODO: image to result (obj)
-## TODO: image to store inspect element

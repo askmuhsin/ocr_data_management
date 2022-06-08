@@ -2,6 +2,7 @@ from urllib.request import urlopen, Request
 import numpy as np
 import shutil
 import boto3
+import json
 import cv2
 import io
 import os
@@ -28,8 +29,7 @@ def get_image_from_url(url):
 
 
 def get_image_from_s3(
-    s3_object_key, s3_bucket, region_name='us-east-1',
-):
+    s3_object_key, s3_bucket, region_name='us-east-1'):
     img = None
     try:
         s3 = boto3.resource(
@@ -60,8 +60,7 @@ def get_image_from_s3(
 
 def write_annotated_file_to_s3(
     pred_annotated_img, s3_object_key, 
-    s3_bucket='ocr-output-images', region_name='us-east-1',
-):
+    s3_bucket='ocr-output-images', region_name='us-east-1'):
     try:
         s3 = boto3.resource(
             's3',
@@ -86,3 +85,27 @@ def write_annotated_file_to_s3(
         print('[ERROR] write_annotated_file_to_s3 : ', s3_object_key, e)
     else:
         shutil.rmtree(dir_path)
+
+
+def write_to_sqs(
+    text, s3_object_key, 
+    queue_name='text-index-requests', 
+    region_name='us-east-1'):
+
+    sqs = boto3.resource(
+        'sqs',
+        region_name=region_name,
+        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+    )
+    text_index_request_queue = sqs.get_queue_by_name(QueueName=queue_name)
+    message = {
+        "text": text,
+        "s3_object_key": s3_object_key,
+    }
+    message_text = json.dumps(message)
+    try:
+        response = text_index_request_queue.send_message(MessageBody=message_text)
+    except Exception as e:
+        print(f'[ERROR] write_to_sqs : {queue_name}', e)
+    return response
