@@ -1,4 +1,6 @@
+from docarray import Document, DocumentArray
 from urllib.request import urlopen, Request
+from jina import Client
 import numpy as np
 import shutil
 import boto3
@@ -109,3 +111,24 @@ def write_to_sqs(
     except Exception as e:
         print(f'[ERROR] write_to_sqs : {queue_name}', e)
     return response
+
+
+def index_to_jina(text_to_index, s3_object_key):
+    c = Client(
+        protocol='http', 
+        host='ec2-3-83-123-10.compute-1.amazonaws.com',
+        port=12345,
+    )
+    text_to_index = text_to_index if isinstance(text_to_index, list) else [text_to_index]
+
+    da = DocumentArray(
+        [
+            Document(text=x, s3_object_key=s3_object_key) 
+            for x in text_to_index
+        ]
+    )
+    doc_text = da[0].text
+    print(f"Document text -- {doc_text}; tags -- {da[0].tags}")
+    c.index(da)
+
+    return doc_text

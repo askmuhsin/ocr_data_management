@@ -10,6 +10,7 @@ from .utils import (
     get_image_from_url, get_image_from_s3, 
     write_annotated_file_to_s3,
     write_to_sqs,
+    index_to_jina,
 )
 
 app = FastAPI()
@@ -81,6 +82,9 @@ def ocr_service_run(s3_object_key, s3_bucket='ocr-requested-images'):
         ocr_model.processed_output['stitched_text'], s3_object_key
     )
     print(f'[INFO] sqs response -- {sqs_response}')
+
+    print(f'[INFO] index to JINA ')
+    doc_text = index_to_jina(ocr_model.processed_output['stitched_text'], s3_object_key)
 
     return {
         'text': ocr_model.processed_output['stitched_text'],
