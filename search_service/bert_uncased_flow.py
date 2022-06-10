@@ -34,7 +34,7 @@ class SimpleIndexer(Executor):
         docs.match(self._index)
         
         
-def main():
+def define_flow():
     flow = (
         Flow(
             port_expose=12345, 
@@ -50,11 +50,18 @@ def main():
         )
         .add(uses=SimpleIndexer, name='indexer', workspace='workspace')
     )
+    return flow
+
+
+def main():
+    flow = define_flow()
     flow.plot('flow.svg')
     
     with flow:
         # flow.to_docker_compose_yaml('docker-compose.yml')
-        flow.block()
+        # flow.block()
+        print(flow)
         
+
 if __name__=='__main__':
     main()
